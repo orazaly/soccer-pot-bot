@@ -123,6 +123,33 @@ def set_paid(game_id, user_id, paid):
         db.commit()
 
 
+def remove_participant(game_id, user_id):
+    """Drop a player from the roster (used by 'I'm out' / 'Revoke')."""
+    with closing(sqlite3.connect(DB_PATH)) as db:
+        db.execute(
+            "DELETE FROM participants WHERE game_id=? AND user_id=?",
+            (game_id, user_id),
+        )
+        db.commit()
+
+
+def is_participant(game_id, user_id):
+    with closing(sqlite3.connect(DB_PATH)) as db:
+        r = db.execute(
+            "SELECT 1 FROM participants WHERE game_id=? AND user_id=?",
+            (game_id, user_id),
+        ).fetchone()
+    return r is not None
+
+
+def count_participants(game_id):
+    with closing(sqlite3.connect(DB_PATH)) as db:
+        (n,) = db.execute(
+            "SELECT COUNT(*) FROM participants WHERE game_id=?", (game_id,)
+        ).fetchone()
+    return n
+
+
 def get_participants(game_id):
     with closing(sqlite3.connect(DB_PATH)) as db:
         rows = db.execute(
@@ -172,15 +199,36 @@ def game_header(amount, label):
 
 
 def game_keyboard(game_id):
+    """A two-stage shared keyboard.
+
+    Telegram attaches one keyboard to a group message (everyone sees the same
+    buttons), so we stage the controls by the roster's state instead of per
+    user:
+
+      * Nobody's joined yet  →  just the roster choice: I'm in / I'm out.
+      * Someone is in         →  reveal the follow-up controls: Revoke (leave),
+                                  I paid, Not paid.
+
+    Whichever button a player taps acts on that player.
+    """
+    if count_participants(game_id) == 0:
+        return InlineKeyboardMarkup(
+            [
+                [
+                    InlineKeyboardButton("I'm in ⚽", callback_data=f"join:{game_id}"),
+                    InlineKeyboardButton("I'm out 🚫", callback_data=f"leave:{game_id}"),
+                ]
+            ]
+        )
     return InlineKeyboardMarkup(
         [
             [
                 InlineKeyboardButton("I'm in ⚽", callback_data=f"join:{game_id}"),
-                InlineKeyboardButton("I paid ✅", callback_data=f"paid:{game_id}"),
+                InlineKeyboardButton("Revoke ↩️", callback_data=f"leave:{game_id}"),
             ],
             [
-                InlineKeyboardButton("Not paid ↩️", callback_data=f"unpaid:{game_id}"),
-                InlineKeyboardButton("Status 📋", callback_data=f"status:{game_id}"),
+                InlineKeyboardButton("I paid ✅", callback_data=f"paid:{game_id}"),
+                InlineKeyboardButton("Not paid 💸", callback_data=f"unpaid:{game_id}"),
             ],
         ]
     )
@@ -463,6 +511,12 @@ async def on_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if action == "join":
         add_participant(game["id"], user)
         await query.answer("You're in! ⚽")
+    elif action == "leave":
+        if is_participant(game["id"], user.id):
+            remove_participant(game["id"], user.id)
+            await query.answer("Took you off the roster. ↩️")
+        else:
+            await query.answer("You weren't on the roster.")
     elif action == "paid":
         add_participant(game["id"], user)
         set_paid(game["id"], user.id, True)
