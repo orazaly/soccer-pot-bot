@@ -215,16 +215,18 @@ def game_keyboard(game_id):
         return InlineKeyboardMarkup(
             [
                 [
-                    InlineKeyboardButton("I'm in ⚽", callback_data=f"join:{game_id}"),
+                    InlineKeyboardButton("I'm in", callback_data=f"join:{game_id}"),
                 ]
             ]
         )
     return InlineKeyboardMarkup(
         [
             [
-                InlineKeyboardButton("Revoke ↩️", callback_data=f"leave:{game_id}"),
-                InlineKeyboardButton("I paid ✅", callback_data=f"paid:{game_id}"),
-                InlineKeyboardButton("Not paid 💸", callback_data=f"unpaid:{game_id}"),
+                InlineKeyboardButton("I paid", callback_data=f"paid:{game_id}"),
+                InlineKeyboardButton("Not paid", callback_data=f"unpaid:{game_id}"),
+            ],
+            [
+                InlineKeyboardButton("Revoke", callback_data=f"leave:{game_id}"),
             ],
         ]
     )
