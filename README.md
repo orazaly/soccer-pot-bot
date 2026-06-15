@@ -15,8 +15,15 @@ scoreboard and can ping everyone who still owes.
 | `/markpaid` | anyone | Reply to a member's message to mark them paid |
 | `/close` | organizers | Final tally, closes the game |
 
-Players also get tap buttons on the game message: **I'm in**, **I paid**,
-**Not paid** (undo), **Status**.
+Players also get tap buttons on the game message. They appear in two stages
+to keep things tidy:
+
+- **Before anyone's joined:** a single **I'm in** ⚽ button.
+- **Once someone's in:** the message reveals **Revoke** ↩️ (take yourself off
+  the roster), **I paid** ✅, and **Not paid** 💸 (undo a payment).
+
+Each button acts on whoever taps it. (Telegram shows one shared keyboard per
+group message, so the stage is driven by the roster, not per person.)
 
 ### Who counts as an organizer
 
