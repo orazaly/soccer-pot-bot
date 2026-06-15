@@ -205,7 +205,7 @@ def game_keyboard(game_id):
     buttons), so we stage the controls by the roster's state instead of per
     user:
 
-      * Nobody's joined yet  →  just the roster choice: I'm in / I'm out.
+      * Nobody's joined yet  →  just a single "I'm in" button.
       * Someone is in         →  reveal the follow-up controls: Revoke (leave),
                                   I paid, Not paid.
 
@@ -216,17 +216,13 @@ def game_keyboard(game_id):
             [
                 [
                     InlineKeyboardButton("I'm in ⚽", callback_data=f"join:{game_id}"),
-                    InlineKeyboardButton("I'm out 🚫", callback_data=f"leave:{game_id}"),
                 ]
             ]
         )
     return InlineKeyboardMarkup(
         [
             [
-                InlineKeyboardButton("I'm in ⚽", callback_data=f"join:{game_id}"),
                 InlineKeyboardButton("Revoke ↩️", callback_data=f"leave:{game_id}"),
-            ],
-            [
                 InlineKeyboardButton("I paid ✅", callback_data=f"paid:{game_id}"),
                 InlineKeyboardButton("Not paid 💸", callback_data=f"unpaid:{game_id}"),
             ],
